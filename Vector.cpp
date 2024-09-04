@@ -222,7 +222,6 @@ bool operator==(const Custom_Vector &lhs, const Custom_Vector &rhs)
 
 bool operator==(const Custom_Vector &lhs, const std::vector<int> &rhs)
 {
-    EXPECT_NE(lhs.size(), 0);
     EXPECT_EQ(lhs.size(), rhs.size());
     EXPECT_EQ(lhs.capacity(), rhs.capacity());
     EXPECT_TRUE(std::equal(lhs.begin(), lhs.end(), rhs.begin()));
@@ -231,10 +230,16 @@ bool operator==(const Custom_Vector &lhs, const std::vector<int> &rhs)
 
 bool equivalent(const Custom_Vector &lhs, const std::vector<int> &rhs)
 {
-    EXPECT_NE(lhs.size(), 0);
     EXPECT_EQ(lhs.size(), rhs.size());
     EXPECT_LE(lhs.size(), lhs.capacity());
     EXPECT_TRUE(std::equal(lhs.begin(), lhs.end(), rhs.begin()));
+    return true;
+}
+
+bool cmp(const Custom_Vector &v, size_t size)
+{
+    EXPECT_EQ(v.size(), size);
+    EXPECT_GE(v.capacity(), size);
     return true;
 }
 
@@ -248,16 +253,48 @@ TEST(Vector_Test, constructorByDefault)
 
 TEST(Vector_Test, constructorBySize)
 {
+    {
+        Custom_Vector test(0);
+        EXPECT_TRUE(cmp(test, 0));
+    }
+
+    {
+        Custom_Vector test(1);
+        EXPECT_TRUE(cmp(test, 1));
+    }
+
+    {
+        Custom_Vector test(100);
+        EXPECT_TRUE(cmp(test, 100));
+    }
+
     Custom_Vector test1(8);
     std::vector<int> test2(8);
 
-    EXPECT_NE(test1.size(), 0);
     EXPECT_EQ(test1.size(), test2.size());
     EXPECT_EQ(test1.capacity(), test2.capacity());
 }
 
 TEST(Vector_Test, constructorByInitList)
 {
+    {
+        std::initializer_list<int> tmp;
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1};
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1,2,3,4,5,6,7,8,9,10};
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
     std::initializer_list<int> tmp = {1, 2, 3, 4};
     Custom_Vector test1(tmp);
     std::vector<int> test2(tmp);
@@ -267,10 +304,26 @@ TEST(Vector_Test, constructorByInitList)
 
 TEST(Vector_Test, copyConstructor)
 {
+    {
+        Custom_Vector tmp;
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        Custom_Vector tmp = {1};
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(test == tmp);
+    }
+
+    {
+        Custom_Vector tmp = {1, 2, 3, 4, 5,6,7,8,9,10};
+        Custom_Vector test(tmp);
+        EXPECT_TRUE(test == tmp);
+    }
+
     Custom_Vector tmp1 = {1, 2, 3, 4, 5};
     Custom_Vector test1(tmp1);
-
-    EXPECT_TRUE(test1 == tmp1);
 
     std::vector<int> tmp2 = {1, 2, 3, 4, 5};
     std::vector<int> test2(tmp2);
@@ -280,6 +333,24 @@ TEST(Vector_Test, copyConstructor)
 
 TEST(Vector_Test, moveConstructor)
 {
+    {
+        Custom_Vector tmp;
+        Custom_Vector test= std::move(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        Custom_Vector tmp = {1};
+        Custom_Vector test = std::move(tmp);
+        EXPECT_TRUE(cmp(test, 1));
+    }
+
+    {
+        Custom_Vector tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        Custom_Vector test = std::move(tmp);
+        EXPECT_TRUE(cmp(test, 10));
+    }
+
     Custom_Vector tmp1 = {1, 2, 3, 4, 5};
     Custom_Vector test1 = std::move(tmp1);
 
@@ -305,6 +376,25 @@ TEST(Vector_Test, at)
 
 TEST(Vector_Test, assignByCountAndValue)
 {
+
+    {
+        Custom_Vector test;
+        test.assign(0, 1);
+        EXPECT_TRUE(cmp(test, 0));
+    }
+
+    {
+        Custom_Vector test;
+        test.assign(1, 2);
+        EXPECT_TRUE(cmp(test, 1));
+    }
+
+    {
+        Custom_Vector test;
+        test.assign(100, 3);
+        EXPECT_TRUE(cmp(test, 100));
+    }
+
     Custom_Vector test1;
     std::vector<int> test2;
 
@@ -326,6 +416,28 @@ TEST(Vector_Test, assignByCountAndValue)
 
 TEST(Vector_Test, assignByInitList)
 {
+
+    {
+        std::initializer_list<int> tmp;
+        Custom_Vector test;
+        test.assign(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1};
+        Custom_Vector test;
+        test.assign(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        Custom_Vector test;
+        test.assign(tmp);
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
     std::initializer_list<int> tmp1 = {1, 1, 1, 1, 1, 1, 1};
     std::initializer_list<int> tmp2 = {2, 2, 2};
     std::initializer_list<int> tmp3 = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
@@ -351,10 +463,45 @@ TEST(Vector_Test, assignByInitList)
 
 TEST(Vector_Test, operator_assign)
 {
+    {
+        Custom_Vector tmp;
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        Custom_Vector tmp = {1};
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(test == tmp);
+    }
+
+    {
+        Custom_Vector tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(tmp == test);
+    }
+
+    {
+        std::initializer_list<int> tmp;
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1};
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
+    {
+        std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        Custom_Vector test = tmp;
+        EXPECT_TRUE(cmp(test, tmp.size()));
+    }
+
     Custom_Vector tmp1 = {1, 2, 3, 4, 5};
     Custom_Vector test1 = tmp1;
 
-    EXPECT_NE(test1.size(), 0);
     EXPECT_TRUE(tmp1 == test1);
 
     std::initializer_list<int> tmp2 = {6, 7, 8, 9};
@@ -369,8 +516,6 @@ TEST(Vector_Test, operator_assign)
 TEST(Vector_Test, pushBack)
 {
     Custom_Vector test = {1, 2, 3, 4, 5};
-
-    EXPECT_NE(test.size(), 0);
 
     test.push_back(6);
     EXPECT_EQ(test[test.size() - 1], 6);
@@ -412,71 +557,14 @@ TEST(Vector_Test, erase)
 {
     Custom_Vector test;
 
-    EXPECT_EQ(test.size(), 0);
     EXPECT_THROW(test.erase(-1), std::out_of_range);
     EXPECT_THROW(test.erase(10), std::out_of_range);
 
     test = {1, 2, 3, 4, 5};
 
-    EXPECT_NE(test.size(), 0);
     test.erase(3);
     EXPECT_EQ(test[3], 5);
     EXPECT_THROW(test.erase(4), std::out_of_range);
-}
-
-TEST(Vector_Test, input)
-{
-    Custom_Vector tmp1;
-    Custom_Vector test1(tmp1);
-    EXPECT_EQ(test1.size(), 0);
-
-    std::initializer_list<int> tmp2;
-
-    Custom_Vector test2(tmp2);
-    EXPECT_EQ(test1.size(), 0);
-
-    test1 = tmp2;
-    EXPECT_EQ(test1.size(), 0);
-
-    test1.assign(0, 0);
-    EXPECT_EQ(test1.size(), 0);
-
-    test1.assign(tmp2);
-    EXPECT_EQ(test1.size(), 0);
-
-    test1 = tmp1;
-    EXPECT_EQ(test1.size(), 0);
-
-    Custom_Vector tmp3 = {1,2,3,4,5};
-    Custom_Vector test3(tmp3);
-    EXPECT_NE(test3.size(), 0);
-
-    test3.clear();
-    std::initializer_list<int> tmp4 = {6,7,8,9};
-
-    Custom_Vector test4(tmp3);
-    EXPECT_NE(test4.size(), 0);
-
-    test3 = tmp4;
-    EXPECT_NE(test3.size(), 0);
-
-    test3.clear();
-    test3.assign(3, 2);
-    EXPECT_NE(test3.size(), 0);
-
-    test3.clear();
-    test3.assign(tmp4);
-    EXPECT_NE(test3.size(), 0);
-
-    test3.clear();
-    test3 = tmp4;
-    EXPECT_NE(test3.size(), 0);
-
-    Custom_Vector test5 = std::move(tmp1);
-    EXPECT_EQ(test1.size(), 0);
-
-    Custom_Vector test6 = std::move(tmp3);
-    EXPECT_NE(test6.size(), 0);
 }
 
 int main(int argc, char *argv[])
