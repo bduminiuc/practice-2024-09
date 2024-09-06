@@ -14,6 +14,9 @@ public:
     typedef int *iterator;
     typedef const int *const_iterator;
 
+    typedef int *riterator;
+    typedef const int *const_riterator;
+
     Custom_Vector()
         : _size(0),
           _capacity(0),
@@ -87,6 +90,11 @@ public:
         _size = 0;
     }
 
+    bool empty()
+    {
+        return _size == 0;
+    }
+
     void push_back(const int &element)
     {
         if (_capacity == 0)
@@ -102,6 +110,23 @@ public:
         _size++;
     }
 
+    void resize(size_t size_n)
+    {
+        resize(size_n, int());
+    }
+
+    void resize(size_t size_n, const int &value)
+    {
+        reserve(size_n);
+
+        if (_size <= size_n)
+        {
+            std::fill_n(end(), size_n - _size, value);
+        }
+
+        _size = size_n;
+    }
+
     void reserve(size_t size_n)
     {
         if (size_n <= _capacity)
@@ -115,7 +140,37 @@ public:
 
         delete[] buffer;
         buffer = point;
-        _capacity = _capacity + size_n;
+        _capacity = size_n;
+    }
+
+    void shrink_to_fit()
+    {
+        int *point = new int[_size];
+        std::copy(begin(), end(), point);
+
+        delete[] buffer;
+        buffer = point;
+        _capacity = _size;
+    }
+
+    int &front()
+    {
+        return buffer[0];
+    }
+
+    const int &front() const
+    {
+        return buffer[0];
+    }
+
+    int &back()
+    {
+        return buffer[_size - 1];
+    }
+
+    const int &back() const
+    {
+        return buffer[_size - 1];
     }
 
     int at(size_t pos)
@@ -136,6 +191,16 @@ public:
         }
 
         return buffer[pos];
+    }
+
+    int *data()
+    {
+        return buffer;
+    }
+
+    const int *data() const
+    {
+        return buffer;
     }
 
     int &operator[](size_t pos) { return buffer[pos]; }
@@ -188,6 +253,30 @@ public:
         return *this;
     }
 
+    void insert(size_t pos, const int &value)
+    {
+        if (_size < pos)
+        {
+            throw std::out_of_range("Error");
+        }
+
+        if (_capacity == 0)
+        {
+            reserve(1);
+        }
+
+        if (_size == _capacity)
+        {
+            reserve(2 * _capacity);
+        }
+
+        iterator it = &buffer[pos];
+        std::move(it, end(), it + 1);
+
+        buffer[pos] = value;
+        _size++;
+    }
+
     void erase(size_t pos)
     {
         if (_size <= pos)
@@ -195,11 +284,16 @@ public:
             throw std::out_of_range("Error");
         }
 
-        for (size_t i = pos; i < _size; i++)
-        {
-            buffer[i] = buffer[i + 1];
-        }
+        iterator it = &buffer[pos];
+        std::move(it, end(), it - 1);
         _size--;
+    }
+
+    const void swap(Custom_Vector &other) noexcept
+    {
+        std::swap(buffer, other.buffer);
+        std::swap(_size, other._size);
+        std::swap(_capacity, other._capacity);
     }
 
     iterator begin() { return buffer; }
@@ -209,6 +303,14 @@ public:
     iterator end() { return buffer + _size; }
     const_iterator end() const { return buffer + _size; }
     const_iterator cend() const { return end(); }
+
+    riterator rbegin() { return buffer + _size - 1; }
+    const_riterator rbegin() const { return buffer; }
+    const_riterator crbegin() const { return rbegin(); }
+
+    riterator rend() { return buffer - 1; }
+    const_riterator rend() const { return buffer - 1; }
+    const_riterator crcend() const { return rend(); }
 };
 
 bool operator==(const Custom_Vector &lhs, const Custom_Vector &rhs)
@@ -290,7 +392,7 @@ TEST(Vector_Test, constructorByInitList)
     }
 
     {
-        std::initializer_list<int> tmp = {1,2,3,4,5,6,7,8,9,10};
+        std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         Custom_Vector test(tmp);
         EXPECT_TRUE(cmp(test, tmp.size()));
     }
@@ -317,7 +419,8 @@ TEST(Vector_Test, copyConstructor)
     }
 
     {
-        Custom_Vector tmp = {1, 2, 3, 4, 5,6,7,8,9,10};
+
+        Custom_Vector tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         Custom_Vector test(tmp);
         EXPECT_TRUE(test == tmp);
     }
@@ -335,7 +438,7 @@ TEST(Vector_Test, moveConstructor)
 {
     {
         Custom_Vector tmp;
-        Custom_Vector test= std::move(tmp);
+        Custom_Vector test = std::move(tmp);
         EXPECT_TRUE(cmp(test, tmp.size()));
     }
 
@@ -565,6 +668,172 @@ TEST(Vector_Test, erase)
     test.erase(3);
     EXPECT_EQ(test[3], 5);
     EXPECT_THROW(test.erase(4), std::out_of_range);
+}
+
+TEST(Vector_Test, insert)
+{
+    {
+        Custom_Vector test;
+        test.insert(0, 1);
+
+        EXPECT_TRUE(cmp(test, 1));
+    }
+
+    {
+        Custom_Vector test(8);
+        test.insert(5, 1);
+
+        EXPECT_TRUE(cmp(test, 9));
+    }
+
+    {
+        Custom_Vector test(100);
+        test.insert(100, 1);
+
+        EXPECT_TRUE(cmp(test, 101));
+    }
+
+    Custom_Vector test{1, 2, 3, 4, 5};
+
+    test.insert(2, 6);
+
+    EXPECT_EQ(test[2], 6);
+    EXPECT_EQ(test[3], 3);
+}
+
+TEST(Vector_Test, resize)
+{
+    {
+        Custom_Vector test;
+        test.resize(10);
+
+        EXPECT_TRUE(cmp(test, 10));
+    }
+
+    {
+        Custom_Vector test(8);
+        test.resize(10);
+
+        EXPECT_TRUE(cmp(test, 10));
+    }
+
+    {
+        Custom_Vector test(100);
+        test.resize(10);
+
+        EXPECT_TRUE(cmp(test, 10));
+    }
+}
+
+TEST(Vector_Test, swap)
+{
+    {
+        Custom_Vector a, b;
+        a.swap(b);
+
+        EXPECT_TRUE(cmp(a, 0));
+        EXPECT_TRUE(cmp(b, 0));
+    }
+
+    {
+        Custom_Vector a, b{1};
+        a.swap(b);
+
+        EXPECT_TRUE(cmp(a, 1));
+        EXPECT_TRUE(cmp(b, 0));
+    }
+
+    {
+        Custom_Vector a, b{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        a.swap(b);
+
+        EXPECT_TRUE(cmp(a, 10));
+        EXPECT_TRUE(cmp(b, 0));
+    }
+
+    {
+        Custom_Vector a{1, 2, 3, 4}, b{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        a.swap(b);
+
+        EXPECT_TRUE(cmp(a, 10));
+        EXPECT_TRUE(cmp(b, 4));
+    }
+}
+
+TEST(Vector_Test, back)
+{
+    {
+        Custom_Vector test{1};
+
+        EXPECT_EQ(test.back(), 1);
+    }
+
+    {
+        Custom_Vector test{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+        EXPECT_EQ(test.back(), 10);
+    }
+
+    Custom_Vector test{1};
+    test.push_back(2);
+    EXPECT_EQ(test.back(), 2);
+}
+
+TEST(Vector_Test, front)
+{
+    {
+        Custom_Vector test{1};
+
+        EXPECT_EQ(test.front(), 1);
+    }
+
+    {
+        Custom_Vector test{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+        EXPECT_EQ(test.front(), 1);
+    }
+
+    Custom_Vector test{1};
+    test.push_back(2);
+    EXPECT_EQ(test.front(), 1);
+}
+
+TEST(Vector_Test, data)
+{
+    Custom_Vector test;
+    int *tmp = test.data();
+
+    EXPECT_EQ(tmp, test.data());
+}
+
+TEST(Vector_Test, shrinkToFit)
+{
+    {
+        Custom_Vector test;
+        test.shrink_to_fit();
+
+        EXPECT_TRUE(cmp(test, 0));
+    }
+
+    {
+        Custom_Vector test{1, 2};
+        test.push_back(3);
+
+        EXPECT_EQ(test.capacity(), 4);
+        test.shrink_to_fit();
+
+        EXPECT_TRUE(cmp(test, 3));
+    }
+
+    {
+        Custom_Vector test(100);
+        test.push_back(3);
+
+        EXPECT_EQ(test.capacity(), 200);
+        test.shrink_to_fit();
+
+        EXPECT_TRUE(cmp(test, 101));
+    }
 }
 
 int main(int argc, char *argv[])
