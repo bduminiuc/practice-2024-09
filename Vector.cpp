@@ -2,6 +2,62 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <iterator>
+
+template <typename T>
+class RawIterator : public std::iterator<std::bidirectional_iterator_tag, T>
+{
+private:
+    T *ptr;
+
+public:
+    RawIterator() : ptr(nullptr) {}
+    RawIterator(pointer other) : ptr(other) {}
+    RawIterator(const RawIterator<T> &other) : ptr(other.ptr) {}
+    ~RawIterator() = default;
+
+    T& operator*()
+    {
+        return *ptr;
+    }
+
+    RawIterator<T> operator++()
+    {
+        ptr++;
+        return *this;
+    }
+    RawIterator<T> operator++(int)
+    {
+        RawIterator<T> tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    RawIterator<T> operator--()
+    {
+        ptr--;
+        return *this;
+    }
+    RawIterator<T> operator--(int)
+    {
+        RawIterator<T> tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
+    RawIterator<T> operator+(difference_type n)
+    {
+        return ptr + n;
+    }
+
+    RawIterator<T> operator-(difference_type n)
+    {
+        return ptr - n;
+    }
+
+    friend bool operator==(const RawIterator<T> &a, const RawIterator<T> &b) { return a.ptr == b.ptr; };
+    friend bool operator!=(const RawIterator<T> &a, const RawIterator<T> &b) { return a.ptr != b.ptr; };
+};
 
 class Custom_Vector
 {
@@ -11,16 +67,18 @@ private:
     int *buffer;
 
 public:
-    typedef int *iterator;
-    typedef const int *const_iterator;
+    typedef RawIterator<int> iterator;
+    typedef RawIterator<const int> const_iterator;
 
-    typedef int *riterator;
-    typedef const int *const_riterator;
+    typedef std::reverse_iterator<iterator> riterator;
+    typedef std::reverse_iterator<const_iterator> const_riterator;
 
     Custom_Vector()
         : _size(0),
           _capacity(0),
-          buffer(nullptr) {}
+          buffer(nullptr)
+    {
+    }
 
     explicit Custom_Vector(size_t size)
         : _size(size),
@@ -289,7 +347,7 @@ public:
         _size--;
     }
 
-    const void swap(Custom_Vector &other) noexcept
+    void swap(Custom_Vector &other) noexcept
     {
         std::swap(buffer, other.buffer);
         std::swap(_size, other._size);
@@ -304,12 +362,12 @@ public:
     const_iterator end() const { return buffer + _size; }
     const_iterator cend() const { return end(); }
 
-    riterator rbegin() { return buffer + _size - 1; }
-    const_riterator rbegin() const { return buffer; }
+    riterator rbegin() { return riterator(buffer + _size - 1); }
+    const_riterator rbegin() const { return const_riterator(buffer + _size - 1); }
     const_riterator crbegin() const { return rbegin(); }
 
-    riterator rend() { return buffer - 1; }
-    const_riterator rend() const { return buffer - 1; }
+    riterator rend() { return riterator(buffer - 1); }
+    const_riterator rend() const { return const_riterator(buffer - 1); }
     const_riterator crcend() const { return rend(); }
 };
 
