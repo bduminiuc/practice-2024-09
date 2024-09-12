@@ -18,13 +18,13 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-  Vector
-  Vector.cpp
+  List
+  List.cpp
 )
 target_link_libraries(
-  Vector
+  List
   GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(Vector)
+gtest_discover_tests(List)
