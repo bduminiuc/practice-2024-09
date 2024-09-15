@@ -5,152 +5,167 @@
 #include "gtest/gtest.h"
 
 template <typename T>
-class Node
-{
-public:
-    T data{};
-    Node<T> *_next;
-    Node<T> *_prev;
-
-    Node() : data(int()), _next(nullptr), _prev(nullptr) {}
-    Node(const T &value) : data(value), _next(nullptr), _prev(nullptr) {}
-
-    void add(Node<T> *new_Node)
-    {
-        new_Node->_next = this;
-        new_Node->_prev = _prev;
-        _prev->_next = new_Node;
-        _prev = new_Node;
-    }
-
-    void remove()
-    {
-        _next->_prev = _prev;
-        _prev->_next = _next;
-        _next = _prev = nullptr;
-    }
-
-    void swap(Node<T> &other) { std::swap(data, other.data); }
-
-    void rev() { std::swap(_next, _prev); }
-};
-
-template <typename T>
-class RawIterator
-{
-private:
-    Node<T> *_ptr;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = T;
-    using pointer = T *;
-    using reference = T &;
-
-    RawIterator() : _ptr(nullptr) {}
-    RawIterator(Node<T> *other) : _ptr(other) {}
-    RawIterator(const RawIterator<T> &other) : _ptr(other._ptr) {}
-    ~RawIterator() = default;
-
-    reference operator*() { return _ptr->data; }
-    Node<T> *ptr() { return _ptr; }
-
-    RawIterator<T> operator++()
-    {
-        _ptr = _ptr->_next;
-        return *this;
-    }
-    RawIterator<T> operator++(int)
-    {
-        RawIterator<T> tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    RawIterator<T> operator--()
-    {
-        _ptr = _ptr->_prev;
-        return *this;
-    }
-    RawIterator<T> operator--(int)
-    {
-        RawIterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    friend bool operator==(const RawIterator<T> &a, const RawIterator<T> &b)
-    {
-        return a._ptr == b._ptr;
-    };
-    friend bool operator!=(const RawIterator<T> &a, const RawIterator<T> &b)
-    {
-        return !(a == b);
-    };
-};
-
-template <typename T>
-class ConstRawIterator
-{
-private:
-    const Node<T> *_ptr;
-
-public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = T;
-    using pointer = const T *;
-    using reference = const T &;
-
-    ConstRawIterator() : _ptr(nullptr) {}
-    ConstRawIterator(Node<T> *other) : _ptr(other) {}
-    ConstRawIterator(const ConstRawIterator<T> &other) : _ptr(other._ptr) {}
-    ~ConstRawIterator() = default;
-
-    reference operator*() { return _ptr->data; }
-    const Node<T> *ptr() { return _ptr; }
-
-    ConstRawIterator<T> operator++()
-    {
-        _ptr = _ptr->_next;
-        return *this;
-    }
-    ConstRawIterator<T> operator++(int)
-    {
-        ConstRawIterator<T> tmp(*this);
-        ++(*this);
-        return tmp;
-    }
-
-    ConstRawIterator<T> operator--()
-    {
-        _ptr = _ptr->_prev;
-        return *this;
-    }
-    ConstRawIterator<T> operator--(int)
-    {
-        ConstRawIterator tmp(*this);
-        --(*this);
-        return tmp;
-    }
-
-    friend bool operator==(const ConstRawIterator<T> &a,
-                           const ConstRawIterator<T> &b)
-    {
-        return a._ptr == b._ptr;
-    };
-    friend bool operator!=(const ConstRawIterator<T> &a,
-                           const ConstRawIterator<T> &b)
-    {
-        return !(a == b);
-    };
-};
-
-template <typename T>
 class Custom_List
 {
 private:
+    template <typename T>
+    struct Node
+    {
+        T data{};
+        Node<T> *_next;
+        Node<T> *_prev;
+
+        Node() : data(T()), _next(nullptr), _prev(nullptr) {}
+        Node(const T &value) : data(value), _next(nullptr), _prev(nullptr) {}
+
+        void add(Node<T> *new_Node)
+        {
+            new_Node->_next = this;
+            new_Node->_prev = _prev;
+            _prev->_next = new_Node;
+            _prev = new_Node;
+        }
+
+        void remove()
+        {
+            _next->_prev = _prev;
+            _prev->_next = _next;
+            _next = _prev = this;
+        }
+
+        void swap(Node<T> &other) { std::swap(data, other.data); }
+
+        void rev() { std::swap(_next, _prev); }
+    };
+
+    template <typename T>
+    struct RawIterator
+    {
+    private:
+        Node<T> *_ptr;
+
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = T;
+        using pointer = T *;
+        using reference = T &;
+
+        RawIterator() : _ptr(nullptr) {}
+        RawIterator(Node<T> *other) : _ptr(other) {}
+        RawIterator(const RawIterator<T> &other) : _ptr(other._ptr) {}
+        ~RawIterator() = default;
+
+        reference operator*() { return _ptr->data; }
+        Node<T> *ptr() { return _ptr; }
+
+        RawIterator<T> operator++()
+        {
+            _ptr = _ptr->_next;
+            return *this;
+        }
+        RawIterator<T> operator++(int)
+        {
+            RawIterator<T> tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
+        RawIterator<T> operator--()
+        {
+            _ptr = _ptr->_prev;
+            return *this;
+        }
+        RawIterator<T> operator--(int)
+        {
+            RawIterator tmp(*this);
+            --(*this);
+            return tmp;
+        }
+
+        friend bool operator==(const RawIterator<T> &a, const RawIterator<T> &b)
+        {
+            return a._ptr == b._ptr;
+        };
+        friend bool operator!=(const RawIterator<T> &a, const RawIterator<T> &b)
+        {
+            return !(a == b);
+        };
+    };
+
+    template <typename T>
+    struct ConstRawIterator
+    {
+    private:
+        const Node<T> *_ptr;
+
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = T;
+        using pointer = const T *;
+        using reference = const T &;
+
+        ConstRawIterator() : _ptr(nullptr) {}
+        ConstRawIterator(Node<T> *other) : _ptr(other) {}
+        ConstRawIterator(const ConstRawIterator<T> &other) : _ptr(other._ptr) {}
+        ~ConstRawIterator() = default;
+
+        reference operator*() { return _ptr->data; }
+        const Node<T> *ptr() { return _ptr; }
+
+        ConstRawIterator<T> operator++()
+        {
+            _ptr = _ptr->_next;
+            return *this;
+        }
+        ConstRawIterator<T> operator++(int)
+        {
+            ConstRawIterator<T> tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
+        ConstRawIterator<T> operator--()
+        {
+            _ptr = _ptr->_prev;
+            return *this;
+        }
+        ConstRawIterator<T> operator--(int)
+        {
+            ConstRawIterator tmp(*this);
+            --(*this);
+            return tmp;
+        }
+
+        friend bool operator==(const ConstRawIterator<T> &a,
+                               const ConstRawIterator<T> &b)
+        {
+            return a._ptr == b._ptr;
+        };
+        friend bool operator!=(const ConstRawIterator<T> &a,
+                               const ConstRawIterator<T> &b)
+        {
+            return !(a == b);
+        };
+    };
+
+    void MergeSort(RawIterator<T> begin, RawIterator<T> end, size_t size)
+    {
+        if (begin == end || std::next(begin) == end)
+        {
+            return;
+        }
+
+        iterator middle(begin);
+        std::advance(middle, size / 2);
+
+        MergeSort(begin, middle, size / 2);
+        MergeSort(middle, end, size / 2 + size % 2);
+
+        std::inplace_merge(begin, middle, end);
+    }
+
     size_t _size{};
     Node<T> *_head;
     Node<T> *_tail;
@@ -162,13 +177,7 @@ public:
     typedef std::reverse_iterator<iterator> riterator;
     typedef std::reverse_iterator<const_iterator> const_riterator;
 
-    Custom_List() : _size(0), _head(new Node<T>()), _tail(new Node<T>())
-    {
-        _head->_next = _tail;
-        _head->_prev = nullptr;
-        _tail->_next = nullptr;
-        _tail->_prev = _head;
-    }
+    Custom_List() : _size(0), _head(nullptr), _tail(nullptr) {}
 
     Custom_List(size_t size_n) : Custom_List()
     {
@@ -204,18 +213,22 @@ public:
 
     Custom_List(const Custom_List &other) : Custom_List()
     {
-        for (auto node : other)
+        auto it = other.begin();
+        for (size_t i = 0; i < other._size; i++)
         {
-            push_back(node);
+            push_back(*it);
+            ++it;
         }
     }
 
-    Custom_List(Custom_List &&other) noexcept : Custom_List() { splice(cbegin(), other); }
+    Custom_List(Custom_List &&other) noexcept : Custom_List()
+    {
+        splice(cbegin(), other);
+    }
 
     ~Custom_List()
     {
         clear();
-
         _head = _tail = nullptr;
     }
 
@@ -223,6 +236,12 @@ public:
     {
         if (this == &other)
         {
+            return *this;
+        }
+
+        if (other.empty())
+        {
+            clear();
             return *this;
         }
 
@@ -256,7 +275,7 @@ public:
 
     Custom_List &operator=(Custom_List &&other) noexcept
     {
-        if (*this == other)
+        if (this == &other)
         {
             return *this;
         }
@@ -311,6 +330,18 @@ public:
 
     void insert(const_iterator pos, T value)
     {
+        if (pos == cbegin())
+        {
+            push_front(value);
+            return;
+        }
+
+        if (pos == cend())
+        {
+            push_back(value);
+            return;
+        }
+
         Node<T> *new_Node(new Node<T>(value));
 
         Node<T> *tmp(const_cast<Node<T> *>(pos.ptr()));
@@ -320,21 +351,46 @@ public:
         _size++;
     }
 
-    void push_back(T value) { insert(cend(), value); }
-    void pop_back() { erase(std::prev(end())); }
+    void push_back(T value)
+    {
+        Node<T> *new_Node = new Node<T>(value);
+        new_Node->_prev = _tail;
 
-    void push_front(T value) { insert(cbegin(), value); }
-    void pop_front() { erase(begin()); }
+        if (_head == nullptr)
+            _head = new_Node;
+
+        if (_tail != nullptr)
+            _tail->_next = new_Node;
+
+        _tail = new_Node;
+        _size++;
+    }
+    void pop_back() { erase(_tail); }
+
+    void push_front(T value)
+    {
+        Node<T> *new_Node = new Node<T>(value);
+        new_Node->_next = _head;
+
+        if (_tail == NULL)
+            _tail = new_Node;
+        if (_head != NULL)
+            _head->_prev = new_Node;
+
+        _head = new_Node;
+        _size++;
+    }
+    void pop_front() { erase(_head); }
 
     size_t size() const { return _size; }
 
-    T &front() { return *begin(); }
+    T &front() { return _head->data; }
 
-    const T &front() const { return *begin(); }
+    const T &front() const { return _head->data; }
 
-    T &back() { return *std::prev(end()); }
+    T &back() { return _tail->data; }
 
-    const T &back() const { return *std::prev(end()); }
+    const T &back() const { return _tail->data; }
 
     bool empty() const { return _size == 0; }
 
@@ -342,8 +398,25 @@ public:
     {
         if (pos != end())
         {
-            Node<T> *tmp(pos.ptr());
-            tmp->remove();
+            Node<T> *tmp = pos.ptr();
+
+            if (tmp->_prev != nullptr)
+            {
+                tmp->_prev->_next = tmp->_next;
+            }
+            else
+            {
+                _head = tmp->_next;
+            }
+
+            if (tmp->_next != nullptr)
+            {
+                tmp->_next->_prev = tmp->_prev;
+            }
+            else
+            {
+                _tail = tmp->_prev;
+            }
 
             delete tmp;
             _size--;
@@ -372,7 +445,7 @@ public:
 
     void swap(Custom_List &other) noexcept
     {
-        if (*this == other)
+        if (this == &other)
         {
             return;
         }
@@ -389,6 +462,17 @@ public:
             return;
         }
 
+        if (other.empty())
+        {
+            return;
+        }
+
+        if (empty())
+        {
+            splice(cbegin(), other);
+            return;
+        }
+
         iterator it_begin(begin());
         iterator it_end(end());
         iterator other_begin(other.begin());
@@ -399,11 +483,37 @@ public:
             if (*other_begin < *it_begin)
             {
                 Node<T> *tmp(other_begin.ptr());
-                ++other_begin;
-                tmp->remove();
-                --other._size;
+
+                if (tmp->_next != nullptr)
+                {
+                    tmp->_next->_prev = tmp->_prev;
+                }
+                else
+                {
+                    if (tmp->_prev != nullptr)
+                        other._tail = tmp->_prev;
+                }
+
+                if (tmp->_prev != nullptr)
+                {
+                    tmp->_prev->_next = tmp->_next;
+                }
+                else
+                {
+                    if (tmp->_next != nullptr)
+                        other._head = tmp->_next;
+                }
+
+                if (it_begin.ptr() == _head)
+                {
+                    _head = tmp;
+                }
+
                 it_begin.ptr()->add(tmp);
+
                 ++_size;
+                --other._size;
+                ++other_begin;
             }
             else
             {
@@ -421,21 +531,41 @@ public:
             return;
         }
 
-        iterator current{const_cast<Node<T> *>(pos.ptr())};
-        iterator fin(other._tail->_prev);
+        if (pos.ptr() == nullptr)
+        {
+            if (_head != nullptr)
+                other._head->_prev = _tail;
+            else
+                _head = other._head;
+            if (_tail != nullptr)
+                _tail->_next = other._head;
+            _tail = other._tail;
+        }
+        else if (pos == cbegin())
+        {
+            other._tail->_next = _head;
+            if (_head != nullptr)
+            {
+                _head->_prev = other._head;
+            }
+            _head = other._head;
+        }
+        else
+        {
+            iterator current{const_cast<Node<T> *>(pos.ptr())};
+            iterator fin(other._tail);
 
-        other.begin().ptr()->_prev = current.ptr()->_prev;
-        fin.ptr()->_next = current.ptr();
+            other.begin().ptr()->_prev = current.ptr()->_prev;
+            fin.ptr()->_next = current.ptr();
 
-        current.ptr()->_prev->_next = other.begin().ptr();
-        current.ptr()->_prev = fin.ptr();
+            current.ptr()->_prev->_next = other.begin().ptr();
+            current.ptr()->_prev = fin.ptr();
+        }
 
         _size += other._size;
 
         other._size = 0;
-
-        delete other._head;
-        delete other._tail;
+        other._head = other._tail = nullptr;
     }
 
     void reverse()
@@ -455,36 +585,20 @@ public:
 
     void sort() { MergeSort(begin(), end(), _size); }
 
-    void MergeSort(iterator begin, iterator end, size_t size)
-    {
-        if (begin == end || std::next(begin) == end)
-        {
-            return;
-        }
-
-        iterator middle(begin);
-        std::advance(middle, size / 2);
-
-        MergeSort(begin, middle, size / 2);
-        MergeSort(middle, end, size / 2 + size % 2);
-
-        std::inplace_merge(begin, middle, end);
-    }
-
-    iterator begin() { return iterator(_head->_next); }
-    const_iterator begin() const { return const_iterator(_head->_next); }
+    iterator begin() { return iterator(_head); }
+    const_iterator begin() const { return const_iterator(_head); }
     const_iterator cbegin() const { return begin(); }
 
-    iterator end() { return iterator(_tail); }
-    const_iterator end() const { return const_iterator(_tail); }
+    iterator end() { return iterator(_tail->_next); }
+    const_iterator end() const { return const_iterator(_tail->_next); }
     const_iterator cend() const { return end(); }
 
-    riterator rbegin() { return riterator(_tail->_prev); }
-    const_riterator rbegin() const { return const_riterator(_tail->_prev); }
+    riterator rbegin() { return riterator(_tail); }
+    const_riterator rbegin() const { return const_riterator(_tail); }
     const_riterator crbegin() const { return rbegin(); }
 
-    riterator rend() { return riterator(_head); }
-    const_riterator rend() const { return const_riterator(_head); }
+    riterator rend() { return riterator(_head->_prev); }
+    const_riterator rend() const { return const_riterator(_head->_prev); }
     const_riterator crcend() const { return rend(); }
 };
 
