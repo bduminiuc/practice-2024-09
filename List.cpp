@@ -22,15 +22,11 @@ private:
         {
             new_Node->_next = this;
             new_Node->_prev = _prev;
-            _prev->_next = new_Node;
+            if (_prev != nullptr)
+            {
+                _prev->_next = new_Node;
+            }
             _prev = new_Node;
-        }
-
-        void remove()
-        {
-            _next->_prev = _prev;
-            _prev->_next = _next;
-            _next = _prev = this;
         }
 
         void swap(Node<T> &other) { std::swap(data, other.data); }
