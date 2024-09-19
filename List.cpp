@@ -173,38 +173,28 @@ public:
     typedef std::reverse_iterator<iterator> riterator;
     typedef std::reverse_iterator<const_iterator> const_riterator;
 
+    using value_type = T;
+
     Custom_List() : _size(0), _head(nullptr), _tail(nullptr) {}
 
     Custom_List(size_t size_n) : Custom_List()
     {
-        for (size_t i = 0; i < size_n; i++)
-        {
-            push_back(T());
-        }
+        std::fill_n(std::back_inserter(*this), size_n, value_type());
     }
 
     Custom_List(iterator a, iterator b) : Custom_List()
     {
-        for (auto it = a; it != b; ++it)
-        {
-            push_back(*it);
-        }
+        std::copy(a, b, std::back_inserter(*this));
     }
 
-    Custom_List(size_t count, T value) : Custom_List()
+    Custom_List(size_t count, value_type value) : Custom_List()
     {
-        for (size_t i = 0; i < count; i++)
-        {
-            push_back(value);
-        }
+        std::fill_n(std::back_inserter(*this), size_n, value);
     }
 
-    Custom_List(std::initializer_list<T> list) : Custom_List()
+    Custom_List(std::initializer_list<value_type> list) : Custom_List()
     {
-        for (auto node : list)
-        {
-            push_back(node);
-        }
+        std::copy(list.begin(), list.end(), std::back_inserter(*this));
     }
 
     Custom_List(const Custom_List &other) : Custom_List()
@@ -217,7 +207,7 @@ public:
         }
     }
 
-    Custom_List(Custom_List &&other) noexcept : Custom_List()
+    Custom_List(Custom_List &&other) : Custom_List()
     {
         splice(cbegin(), other);
     }
@@ -269,7 +259,7 @@ public:
         return *this;
     }
 
-    Custom_List &operator=(Custom_List &&other) noexcept
+    Custom_List &operator=(Custom_List &&other)
     {
         if (this == &other)
         {
@@ -282,41 +272,39 @@ public:
         return *this;
     }
 
-    Custom_List &operator=(std::initializer_list<T> list)
+    Custom_List &operator=(std::initializer_list<value_type> list)
     {
         clear();
 
-        for (auto node : list)
-        {
-            push_back(node);
-        }
+        std::copy(list.begin(), list.end(), std::back_inserter(*this));
 
         return *this;
     }
 
     void assign(size_t count) { assign(count, T()); }
 
-    void assign(size_t count, const T &value)
+    void assign(size_t count, const value_type &value)
     {
         clear();
 
-        for (size_t i = 0; i < count; i++)
-        {
-            push_back(value);
-        }
+        std::fill_n(std::back_inserter(*this), count, value);
     }
 
-    void assign(std::initializer_list<T> list)
+    void assign(iterator a, iterator b)
     {
         clear();
 
-        for (auto node : list)
-        {
-            push_back(node);
-        }
+        std::copy(a, b, std::back_inserter(*this));
     }
 
-    void clear() noexcept
+    void assign(std::initializer_list<value_type> list)
+    {
+        clear();
+
+        std::copy(list.begin(), list.end(), std::back_inserter(*this));
+    }
+
+    void clear()
     {
         while (_size > 0)
         {
@@ -324,7 +312,7 @@ public:
         }
     }
 
-    void insert(const_iterator pos, T value)
+    void insert(const_iterator pos, value_type value)
     {
         if (pos == cbegin())
         {
@@ -338,18 +326,18 @@ public:
             return;
         }
 
-        Node<T> *new_Node(new Node<T>(value));
+        Node<value_type> *new_Node(new Node<value_type>(value));
 
-        Node<T> *tmp(const_cast<Node<T> *>(pos.ptr()));
+        Node<value_type> *tmp(const_cast<Node<value_type> *>(pos.ptr()));
 
         tmp->add(new_Node);
 
         _size++;
     }
 
-    void push_back(T value)
+    void push_back(value_type value)
     {
-        Node<T> *new_Node = new Node<T>(value);
+        Node<value_type> *new_Node = new Node<value_type>(value);
         new_Node->_prev = _tail;
 
         if (_head == nullptr)
@@ -363,9 +351,9 @@ public:
     }
     void pop_back() { erase(_tail); }
 
-    void push_front(T value)
+    void push_front(value_type value)
     {
-        Node<T> *new_Node = new Node<T>(value);
+        Node<value_type> *new_Node = new Node<value_type>(value);
         new_Node->_next = _head;
 
         if (_tail == NULL)
@@ -380,13 +368,13 @@ public:
 
     size_t size() const { return _size; }
 
-    T &front() { return _head->data; }
+    value_type &front() { return _head->data; }
 
-    const T &front() const { return _head->data; }
+    const value_type &front() const { return _head->data; }
 
-    T &back() { return _tail->data; }
+    value_type &back() { return _tail->data; }
 
-    const T &back() const { return _tail->data; }
+    const value_type &back() const { return _tail->data; }
 
     bool empty() const { return _size == 0; }
 
@@ -419,9 +407,9 @@ public:
         }
     }
 
-    void resize(size_t size_n) { resize(size_n, T()); }
+    void resize(size_t size_n) { resize(size_n, value_type()); }
 
-    void resize(size_t count, const T &value)
+    void resize(size_t count, const value_type &value)
     {
         if (_size < count)
         {
@@ -478,7 +466,7 @@ public:
         {
             if (*other_begin < *it_begin)
             {
-                Node<T> *tmp(other_begin.ptr());
+                Node<value_type> *tmp(other_begin.ptr());
 
                 if (tmp->_next != nullptr)
                 {
@@ -520,7 +508,7 @@ public:
         splice(cend(), other);
     }
 
-    void splice(const_iterator pos, Custom_List &other) noexcept
+    void splice(const_iterator pos, Custom_List &other)
     {
         if (other.empty())
         {
@@ -548,7 +536,7 @@ public:
         }
         else
         {
-            iterator current{const_cast<Node<T> *>(pos.ptr())};
+            iterator current{const_cast<Node<value_type> *>(pos.ptr())};
             iterator fin(other._tail);
 
             other.begin().ptr()->_prev = current.ptr()->_prev;
@@ -597,6 +585,14 @@ public:
     const_riterator rend() const { return const_riterator(_head->_prev); }
     const_riterator crcend() const { return rend(); }
 };
+
+template <typename T>
+bool operator==(const Custom_List<T> &lhs, const std::initializer_list<T> &rhs)
+{
+    EXPECT_EQ(lhs.size(), rhs.size());
+    EXPECT_TRUE(std::equal(rhs.begin(), rhs.end(), lhs.begin()));
+    return true;
+}
 
 template <typename T>
 bool operator==(const Custom_List<T> &lhs, const std::list<T> &rhs)
@@ -651,19 +647,19 @@ TEST(List_Test, constructorByInitList)
     {
         std::initializer_list<int> tmp;
         Custom_List<int> test(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1};
         Custom_List<int> test(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         Custom_List<int> test(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     std::initializer_list<int> tmp = {1, 2, 3, 4};
@@ -779,21 +775,21 @@ TEST(List_Test, assignByInitList)
         std::initializer_list<int> tmp;
         Custom_List<int> test;
         test.assign(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE( test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1};
         Custom_List<int> test;
         test.assign(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         Custom_List<int> test;
         test.assign(tmp);
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     std::initializer_list<int> tmp1 = {1, 1, 1, 1, 1, 1, 1};
@@ -842,19 +838,19 @@ TEST(List_Test, operator_assign)
     {
         std::initializer_list<int> tmp;
         Custom_List<int> test = tmp;
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1};
         Custom_List<int> test = tmp;
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     {
         std::initializer_list<int> tmp = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         Custom_List<int> test = tmp;
-        EXPECT_EQ(test.size(), tmp.size());
+        EXPECT_TRUE(test == tmp);
     }
 
     Custom_List<int> tmp1 = {1, 2, 3, 4, 5};
@@ -873,6 +869,12 @@ TEST(List_Test, operator_assign)
 
 TEST(List_Test, pushBack)
 {
+    {
+        Custom_List<int> test;
+        test.push_back(6);
+        EXPECT_EQ(test.back(), 6);
+    }
+
     Custom_List<int> test = {1, 2, 3, 4, 5};
 
     test.push_back(6);
@@ -891,6 +893,12 @@ TEST(List_Test, pushBack)
 
 TEST(List_Test, pushFront)
 {
+    {
+        Custom_List<int> test;
+        test.push_front(6);
+        EXPECT_EQ(test.front(), 6);
+    }
+
     Custom_List<int> test = {1, 2, 3, 4, 5};
 
     test.push_front(6);
